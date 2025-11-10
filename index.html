@@ -3,61 +3,176 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Countdown</title>
+  <title>Countdown Liste</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0d1117, #1f2937);
+      background: #0d1117;
       color: #f0f6fc;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       flex-direction: column;
-      text-align: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 40px;
     }
+
     h1 {
-      font-size: 3em;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
-    #timer {
-      font-size: 2em;
-      letter-spacing: 1px;
+
+    #countdowns {
+      width: 100%;
+      max-width: 600px;
     }
-    footer {
-      position: absolute;
-      bottom: 20px;
-      font-size: 0.9em;
-      color: #9ca3af;
+
+    .countdown {
+      background: #1f2937;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 10px 0;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(255,255,255,0.05);
+    }
+
+    .timer {
+      font-size: 1.4em;
+      margin-top: 5px;
+    }
+
+    #addBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #2563eb;
+      border: none;
+      color: white;
+      font-size: 1.6em;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      cursor: pointer;
+      display: none;
+    }
+
+    #addMenu {
+      display: none;
+      background: #1f2937;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+    }
+
+    input {
+      background: #111827;
+      color: white;
+      border: 1px solid #374151;
+      border-radius: 6px;
+      padding: 8px;
+      margin: 5px;
+    }
+
+    #loginBox {
+      margin-top: 30px;
+      background: #1f2937;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    button {
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>Countdown bis zum 18. Dezember 2025 🎉</h1>
-  <div id="timer"></div>
-  <footer>⏳ Seite automatisch aktualisiert jede Sekunde</footer>
+  <h1>Countdowns</h1>
+
+  <button id="addBtn">+</button>
+
+  <div id="loginBox">
+    <h3>Admin Login</h3>
+    <input type="password" id="password" placeholder="Passwort eingeben">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="addMenu">
+    <input type="text" id="name" placeholder="Name des Countdowns">
+    <input type="datetime-local" id="date">
+    <button onclick="addCountdown()">Countdown hinzufügen</button>
+  </div>
+
+  <div id="countdowns"></div>
 
   <script>
-    // Zielzeit: 18. Dezember 2025, 19:00 Uhr (lokale Zeit)
-    const zielDatum = new Date("December 18, 2025 19:00:00").getTime();
+    const ADMIN_PASSWORD = "3248"; // <--- ändere das Passwort hier!
 
-    const x = setInterval(function() {
-      const jetzt = new Date().getTime();
-      const abstand = zielDatum - jetzt;
+    const addBtn = document.getElementById("addBtn");
+    const addMenu = document.getElementById("addMenu");
+    const countdownsDiv = document.getElementById("countdowns");
 
-      const tage = Math.floor(abstand / (1000 * 60 * 60 * 24));
-      const stunden = Math.floor((abstand % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minuten = Math.floor((abstand % (1000 * 60 * 60)) / (1000 * 60));
-      const sekunden = Math.floor((abstand % (1000 * 60)) / 1000);
-
-      document.getElementById("timer").innerHTML =
-        `${tage}T ${stunden}h ${minuten}m ${sekunden}s`;
-
-      if (abstand < 0) {
-        clearInterval(x);
-        document.getElementById("timer").innerHTML = "🎉 Countdown abgelaufen!";
+    function login() {
+      const pw = document.getElementById("password").value;
+      if (pw === ADMIN_PASSWORD) {
+        document.getElementById("loginBox").style.display = "none";
+        addBtn.style.display = "block";
+      } else {
+        alert("Falsches Passwort!");
       }
-    }, 1000);
+    }
+
+    addBtn.onclick = () => {
+      addMenu.style.display = addMenu.style.display === "none" ? "block" : "none";
+    };
+
+    function addCountdown() {
+      const name = document.getElementById("name").value.trim();
+      const date = document.getElementById("date").value;
+      if (!name || !date) return alert("Bitte Name und Datum eingeben!");
+
+      const newCountdown = { name, date };
+      const all = JSON.parse(localStorage.getItem("countdowns") || "[]");
+      all.push(newCountdown);
+      localStorage.setItem("countdowns", JSON.stringify(all));
+
+      document.getElementById("name").value = "";
+      document.getElementById("date").value = "";
+      addMenu.style.display = "none";
+      renderCountdowns();
+    }
+
+    function renderCountdowns() {
+      countdownsDiv.innerHTML = "";
+      const all = JSON.parse(localStorage.getItem("countdowns") || "[]");
+
+      all.forEach((c, index) => {
+        const div = document.createElement("div");
+        div.className = "countdown";
+        div.innerHTML = `<h3>${c.name}</h3><div class="timer" id="timer${index}"></div>`;
+        countdownsDiv.appendChild(div);
+
+        const ziel = new Date(c.date).getTime();
+        setInterval(() => {
+          const jetzt = new Date().getTime();
+          const diff = ziel - jetzt;
+
+          if (diff <= 0) {
+            document.getElementById("timer" + index).innerHTML = "🎉 Fertig!";
+            return;
+          }
+
+          const tage = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const stunden = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minuten = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const sekunden = Math.floor((diff % (1000 * 60)) / 1000);
+
+          document.getElementById("timer" + index).innerHTML =
+            `${tage}T ${stunden}h ${minuten}m ${sekunden}s`;
+        }, 1000);
+      });
+    }
+
+    renderCountdowns();
   </script>
 </body>
 </html>
