@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countdown</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0d1117, #1f2937);
+      color: #f0f6fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+    }
+    h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+    #timer {
+      font-size: 2em;
+      letter-spacing: 1px;
+    }
+    footer {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.9em;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <h1>Countdown bis zum 18. Dezember 2025 🎉</h1>
+  <div id="timer"></div>
+  <footer>⏳ Seite automatisch aktualisiert jede Sekunde</footer>
+
+  <script>
+    // Zielzeit: 18. Dezember 2025, 19:00 Uhr (lokale Zeit)
+    const zielDatum = new Date("December 18, 2025 19:00:00").getTime();
+
+    const x = setInterval(function() {
+      const jetzt = new Date().getTime();
+      const abstand = zielDatum - jetzt;
+
+      const tage = Math.floor(abstand / (1000 * 60 * 60 * 24));
+      const stunden = Math.floor((abstand % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minuten = Math.floor((abstand % (1000 * 60 * 60)) / (1000 * 60));
+      const sekunden = Math.floor((abstand % (1000 * 60)) / 1000);
+
+      document.getElementById("timer").innerHTML =
+        `${tage}T ${stunden}h ${minuten}m ${sekunden}s`;
+
+      if (abstand < 0) {
+        clearInterval(x);
+        document.getElementById("timer").innerHTML = "🎉 Countdown abgelaufen!";
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
